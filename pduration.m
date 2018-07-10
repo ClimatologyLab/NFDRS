@@ -4,7 +4,7 @@ function [pdur]=pduration(ppt,lat,lon);
 % look up table from Matt Jolly that converts # to duration [no seasonal
 % adjustment makes this real weird]
 
-m=matfile('../../../pduration_jolly2.mat');
+m=matfile('pjolly.mat');
 mlat=m.y(:,1);mlon=m.x(1,:);
 flat=find(abs(mlat-lat)<1/24);flat=flat(1);
 flon=find(abs(mlon-lon)<1/24);flon=flon(1);
