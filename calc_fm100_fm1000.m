@@ -68,13 +68,16 @@ fr1=0.3068;
 
 
 for ndays=1:365*yrs
+    bndry = ((24 - pptdur(ndays)) .* emc(ndays) + (2.7 * pptdur(ndays) + 76).* pptdur(ndays)) / 24;
+
     %   # ACCUMULATE A 6-DAY TOTAL
     bv(1:6)=bv(2:7);
-    bndry = ((24 - pptdur(ndays)) .* emc(ndays) + (2.7 * pptdur(ndays) + 76).* pptdur(ndays)) / 24;
     bv(7) = bndry;
     
     %   7-day average boundary condition
     bvave = mean(bv);
+    
+    %bvave=(bvave+bndry)/7;
     
     %   # CALCULATE TODAY'S 1000 HOUR FUEL MOISTURE
     fm1000(ndays) = tmois(1) + (bvave - tmois(1)).* fr1;

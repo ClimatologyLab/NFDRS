@@ -1,4 +1,4 @@
-function [fm1,fm10,fm100,fm1000,erc,bi,sc]=firedanger1(temp,tmax,tmin,rh,rmax,rmin,pptdur,sow,ws,lat,doy,yr,fuelmod,slopecl,igrass,climcl);
+function [fm1,fm10,fm100,fm1000,erc,bi,sc,ic,ros]=firedanger1(temp,tmax,tmin,rh,rmax,rmin,pptdur,sow,ws,lat,doy,yr,fuelmod,slopecl,igrass,climcl);
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %  This program and its
 %       algorithms are based heavily off of L. Bradshaw's nfdrcalc.for
@@ -81,7 +81,7 @@ lyear=yr(ii);
 
 
 %          # CALCULATE IGNITION COMPONENT
-[ic(ii)]=calc_ic(temp(ii),fm1(ii),scm,ros(ii),sow(ii));
+[ic(ii)]=calc_ic(temp(ii),fm1(ii),scm,sc(ii),sow(ii));
 
  ym1000=fm1000(ii);
  yx1000=x1000;

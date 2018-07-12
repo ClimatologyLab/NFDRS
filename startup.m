@@ -1,12 +1,37 @@
-lat=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/MET/rmax/rmax_2017.nc','lat');lat=lat(200);
-lon=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/MET/rmax/rmax_2017.nc','lon');lon=lon(200);
-ppt=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_pr_1979_CurrentYear_CONUS.nc','precipitation_amount',[200 200 1],[1 1 Inf],[1 1 1]);
-rmax=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_rmax_1979_CurrentYear_CONUS.nc','daily_maximum_relative_humidity',[200 200 1],[1 1 Inf],[1 1 1]);
-rmin=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_rmin_1979_CurrentYear_CONUS.nc','daily_minimum_relative_humidity',[200 200 1],[1 1 Inf],[1 1 1]);
-tmax=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmx_1979_CurrentYear_CONUS.nc','daily_maximum_temperature',[200 200 1],[1 1 Inf],[1 1 1]);
-tmin=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmn_1979_CurrentYear_CONUS.nc','daily_minimum_temperature',[200 200 1],[1 1 Inf],[1 1 1]);
-srad=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_srad_1979_CurrentYear_CONUS.nc','daily_mean_shortwave_radiation_at_surface',[200 200 1],[1 1 Inf],[1 1 1]);
-vs=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_vs_1979_CurrentYear_CONUS.nc','daily_mean_wind_speed',[200 200 1],[1 1 Inf],[1 1 1]);
+% choose your lat/lon of interest
+latr=40.015;
+lonr=-108.2705;
+% choose fuel model, default =7 (conifer), https://fam.nwcg.gov/fam-web/helpdesk/wims/nfdr.htm
+fuelmod=7;
+
+%slope will influence fire behavior metrics, default = 1
+% 1 0 ? 25
+% 2 26 - 40
+% 3 41 - 55
+% 4 56 - 75
+% 5 greater than 75
+slopecl=1;
+
+% Perennial (2) or annual grasses (1), default = 1
+igrass=1;
+
+% Climate class determines how fast greenup occurs, https://famit.nwcg.gov/sites/default/files/Appx_F_Detailed_NFDRS_Inputs.pdf
+% default = 3
+climcl=3;
+
+lat=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/MET/rmax/rmax_2017.nc','lat');
+lon=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/MET/rmax/rmax_2017.nc','lon');
+flat=find(abs(lat-latr)<1/48);
+flon=find(abs(lon-lonr)<1/48);
+lat=lat(flat);
+lon=lon(flon);
+ppt=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_pr_1979_CurrentYear_CONUS.nc','precipitation_amount',[flat flon 1],[1 1 Inf],[1 1 1]);
+rmax=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_rmax_1979_CurrentYear_CONUS.nc','daily_maximum_relative_humidity',[flon flat 1],[1 1 Inf],[1 1 1]);
+rmin=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_rmin_1979_CurrentYear_CONUS.nc','daily_minimum_relative_humidity',[flon flat 1],[1 1 Inf],[1 1 1]);
+tmax=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmx_1979_CurrentYear_CONUS.nc','daily_maximum_temperature',[flon flat 1],[1 1 Inf],[1 1 1]);
+tmin=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmn_1979_CurrentYear_CONUS.nc','daily_minimum_temperature',[flon flat 1],[1 1 Inf],[1 1 1]);
+srad=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_srad_1979_CurrentYear_CONUS.nc','daily_mean_shortwave_radiation_at_surface',[flon flat 1],[1 1 Inf],[1 1 1]);
+vs=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_vs_1979_CurrentYear_CONUS.nc','daily_mean_wind_speed',[flon flat 1],[1 1 Inf],[1 1 1]);
 
 ppt=squeeze(ppt);
 tmax=squeeze(tmax);
@@ -63,12 +88,9 @@ pptdur=pduration(ppt,lat,lon);
 pptdur=pptdur(:);
 sow=sow(:);
 
-fuelmod=7;
-slopecl=1;
-igrass=1;
-climcl=3;
 % if you don't have 1300 temp and rh, I just cut a couple degrees of the
 % max temp, and humidity
 temp=tmax-2;rh=rmin+2;
 yr=repmat([1979:2017],[1 365])';
-[fm1,fm10,fm100,fm1000,erc,bi,sc]=NFDRS_run(temp,tmax,tmin,rh,rmax,rmin,pptdur,sow,vs,lat,dayofyear,yr,fuelmod,slopecl,igrass,climcl);
+[fm1,fm10,fm100,fm1000,erc,bi,sc,ic,ros]=NFDRS_run(temp,tmax,tmin,rh,rmax,rmin,pptdur,sow,vs,lat,dayofyear,yr,fuelmod,slopecl,igrass,climcl);
+plot(reshape(erc,365,39),'k');hold on;plot(mean(reshape(erc,365,39),2),'r','linewidth',3);
