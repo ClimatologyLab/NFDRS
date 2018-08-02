@@ -1,12 +1,6 @@
-function [gsi]=calculateGSI(tmmx,tmmn,sph,lat,el);
+function [gsi]=calculateGSI(vpd,tmmn,lat,el);
 
 % per Jolly, 2005
-% calculate VPD from tmax and tmin and specific humidity
-vpd=calcVPD(tmmx,tmmn,sph,el);
-
-% convert from Pa to kPa
-vpd=vpd/1000;
-
 % calculate VPD component
 f=find(vpd<=.9);f1=find(vpd>.9 & vpd<4.1);f2=find(vpd>=4.1);
 
@@ -17,7 +11,7 @@ clear sph
 
 % calculate daylight from latitude and day of year
 
-for i=1:size(tmmx,1)
+for i=1:size(tmmn,1)
  [daylit(i)]=calcDaylight(i,lat);
 end
 f=find(daylit>10 & daylit<11);dayl(f)=(daylit(f)-10)/11;
