@@ -1,4 +1,4 @@
-function [fmwood,fherbc,x1000,colddays,hveg,greendays] =calc_curing(climcl,j_date,j_green,fm1,ym1000,colddays,hveg,fm1000,maxt,mint,yx1000,igrass,yfherb,greendays);
+function [fmwood,fherbc,x1000,colddays,hveg,greendays] =calc_curing(climcl,j_date,j_green,fm1,ym1000,colddays,hveg,fm1000,maxt,mint,yx1000,igrass,yfherb,greendays,yfwood);
 
 %   # DECLARE CONSTANTS
 %       # BOTH ANNUAL AND PERENNIALS WHEN GREEN (FHERBC ABOVE 120%)
@@ -25,6 +25,8 @@ fherbf = zeros(size(fm1));
 woodaa=wooda(climcl);
 woodbb=woodb(climcl);
 fmwodi=pregrn(climcl);
+
+if yfwood>pregrn(climcl) fmwodi=yfwood;end
 
 fmwodf = woodaa + woodbb.* fm1000;
 if hveg==1 | hveg==6
@@ -61,7 +63,6 @@ switch hveg
         end
     case 3,  % green stage
         x1000=calc_xthou(fm1000,ym1000,maxt,mint,yx1000);
-        gren = 100;
         fherbc = herbga(climcl) + herbgb(climcl).* x1000;
         if yfherb <0 yfherb=fherbc;end
         if igrass ~= 1
@@ -71,7 +72,6 @@ switch hveg
         if fherbc<=120 hveg=4;end
     case 4,  % transition stage
         x1000=calc_xthou(fm1000,ym1000,maxt,mint,yx1000);
-        gren = 100;
         if igrass~=2
             fherbc = hlivta(climcl)+hlivtb(climcl).*x1000;
         else
@@ -84,9 +84,7 @@ switch hveg
         if fherbc < 30 fherbc = 30;hveg=5;end
         fherbc=min(fherbc,150);
     case 5, % cured
-        
         x1000 = fm1000;
-        gren = 0;
         if igrass~=2
             fherbc = hlivta(climcl)+hlivtb(climcl).*x1000;
             fherbc=max(fherbc,30);
@@ -97,6 +95,6 @@ switch hveg
     case 6,  % frozen
         colddays = 0;
         x1000 = fm1000;
-        gren = 0;
         fherbc = fm1;
 end
+fmwood=max(fmwood,pregrn(climcl));

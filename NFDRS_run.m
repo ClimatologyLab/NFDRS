@@ -1,4 +1,4 @@
-function [fm1,fm10,fm100,fm1000,erc,bi,sc,ic,ros]=firedanger1(temp,tmax,tmin,rh,rmax,rmin,pptdur,sow,ws,lat,doy,yr,fuelmod,slopecl,igrass,climcl);
+function [fm1,fm10,fm100,fm1000,erc,bi,sc,ic,ros]=firedanger1(temp,tmax,tmin,rh,rmax,rmin,pptdur,sow,ws,greenup,lat,doy,yr,fuelmod,slopecl,igrass,climcl);
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %  This program and its
 %       algorithms are based heavily off of L. Bradshaw's nfdrcalc.for
@@ -25,11 +25,9 @@ years=unique(yr);
 % first calculate the 1-10-100-and 1000 hour fuel moistures
 
 [fm100,fm1000]=calc_fm100_fm1000(sow,tmax,tmin,pptdur,rmax,rmin,lat,nyr,climcl);
-%          # CALCULATE FM10 (FM10 = F(FM100,EMC)) AND FM1 (FM1 = F(FM10,EMC))
 [fm10,fm1]=calc_fm10_fm1(temp,rh,sow);
 
 clear rh* pptdur tptot
-
 
 ordir=pwd;
 
@@ -47,7 +45,8 @@ greendays = 0;
 colddays = 0;
 warmdays = 0;
 gdd = 0;
-yfherb = -99;
+yfherb = 50;
+yfwood= 50;
 ym1000=fm1000(1);
 yx1000=fm1000(1);
 j_green=0;
@@ -56,7 +55,7 @@ gg=find(doy==1);gg=gg-1;gg(length(gg)+1)=length(doy);
 
 % loop over years
 for jyr=1:nyr
-%j_green = gsi(jyr);
+j_green = greenup(jyr);
 %gr_date=j_green;
 yearnum=years(jyr);
 %ndd=max(doy(find(yr==yearnum)));
@@ -64,28 +63,28 @@ yearnum=years(jyr);
 %loop over days
 for ij=1:365 
   
-%(gg(jyr+1)-gg(jyr))
 ii=gg(jyr)+ij;
 j_date=doy(ii);
 lyear=yr(ii);
-
-
-%determine vegetation stage
+% determine vegetation stage
 [j_green, warmdays, colddays, hveg,gdd]=calc_vegstage(tmax(ii),tmin(ii),warmdays,colddays,j_date,j_green, gdd,hveg);
 
 % CALCULATE CURING FROM CURING FUNCTION (78)
-[fmwood,fherbc,x1000,colddays,hveg,greendays]=calc_curing(climcl,j_date,j_green,fm1(ii),ym1000,colddays,hveg,fm1000(ii),tmax(ii),tmin(ii),yx1000,igrass,yfherb,greendays);
+[fmwood,fherbc,x1000,colddays,hveg,greendays]=calc_curing(climcl,j_date,j_green,fm1(ii),ym1000,colddays,hveg,fm1000(ii),tmax(ii),tmin(ii),yx1000,igrass,yfherb,greendays,yfwood);
 
-%          # CALCULATE INDICES AND STORE IN HASH PER STATION (ALL C VERSION)
+% CALCULATE INDICES AND STORE IN HASH PER STATION (ALL C VERSION)
 [erc(ii),bi(ii),sc(ii),ros(ii)]=calc_indices(w1d,w10d,w100d,w1000d,wherb,wwood,fherbc,depth,sig1d,sig10d,sg100d,s1000d,sgherb,sgwood,fm1(ii),fm10(ii),fm100(ii),fm1000(ii),fmwood,extmoi,hd,ws(ii),wndftr,slopecl,sow(ii),igrass);
 
 
-%          # CALCULATE IGNITION COMPONENT
+% CALCULATE IGNITION COMPONENT
 [ic(ii)]=calc_ic(temp(ii),fm1(ii),scm,sc(ii),sow(ii));
-
+ woodm(ii)=fmwood;
+ herbm(ii)=fherbc;
  ym1000=fm1000(ii);
  yx1000=x1000;
  yfherb=fherbc;
+ yfwood=fmwood;
+ vegs(ii)=hveg;
 end
 end
 end

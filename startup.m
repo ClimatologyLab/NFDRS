@@ -32,12 +32,14 @@ tmax=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tm
 tmin=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_tmmn_1979_CurrentYear_CONUS.nc','daily_minimum_temperature',[flon flat 1],[1 1 Inf],[1 1 1]);
 srad=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_srad_1979_CurrentYear_CONUS.nc','daily_mean_shortwave_radiation_at_surface',[flon flat 1],[1 1 Inf],[1 1 1]);
 vs=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_vs_1979_CurrentYear_CONUS.nc','daily_mean_wind_speed',[flon flat 1],[1 1 Inf],[1 1 1]);
+sph=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_sph_1979_CurrentYear_CONUS.nc','daily_mean_specific_humidity',[flon flat 1],[1 1 Inf],[1 1 1]);
 
 ppt=squeeze(ppt);
 tmax=squeeze(tmax);
 tmin=squeeze(tmin);
 rmax=squeeze(rmax);
 rmin=squeeze(rmin);
+sph=squeeze(sph);
 
 % winds should be in miles per hour at at 20 feet above ground
 vs=squeeze(vs)./.45*.85;
@@ -57,13 +59,13 @@ ppt=ppt/25.4;
 time=ncread('http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_met_pr_1979_CurrentYear_CONUS.nc','day');
 dayofyear=datevec(double(time)+datenum(1900,1,1));
 f=find(dayofyear(:,1)<=2017);
-tmax=tmax(f);tmin=tmin(f);rmax=rmax(f);rmin=rmin(f);ppt=ppt(f);vs=vs(f);srad=srad(f);dayofyear=dayofyear(f,:);
+tmax=tmax(f);tmin=tmin(f);rmax=rmax(f);rmin=rmin(f);ppt=ppt(f);vs=vs(f);srad=srad(f);dayofyear=dayofyear(f,:);sph=sph(f);
 
 dayofyear=datenum(dayofyear)-datenum([dayofyear(:,1) ones(size(dayofyear,1),1) zeros(size(dayofyear,1),1)]);
 
 % truncate 366-day years
 f=find(dayofyear<=365);
-tmax=tmax(f);tmin=tmin(f);rmax=rmax(f);rmin=rmin(f);ppt=ppt(f);vs=vs(f);srad=srad(f);dayofyear=dayofyear(f,:);
+tmax=tmax(f);tmin=tmin(f);rmax=rmax(f);rmin=rmin(f);ppt=ppt(f);vs=vs(f);srad=srad(f);dayofyear=dayofyear(f,:);sph=sph(f);
 tmax=reshape(tmax,365,39);
 tmin=reshape(tmin,365,39);
 rmin=reshape(rmin,365,39);
@@ -71,7 +73,7 @@ rmax=reshape(rmax,365,39);
 ppt=reshape(ppt,365,39);
 vs=reshape(vs,365,39);
 srad=reshape(srad,365,39);
-
+sph=reshape(sph,365,39);
 maxsolar=potential_solar(lat,[1:365]);
 
 % method 1 uses just hourly precipitation
@@ -88,9 +90,22 @@ pptdur=pduration(ppt,lat,lon);
 pptdur=pptdur(:);
 sow=sow(:);
 
+% calculate greenup date, this requires running the growing season index
+[gsi]=calculateGSI(tmmx,tmmn,sph,lat,el);
+
+% the GSI is then normalized to ensure greenup in very "brown" places
+maxmin=prctile(gsi(:),[0.5 99.5]);
+gsix=(reshape(gsi,365,39)-maxmin(1))./(maxmin(2)-maxmin(1));
+
+% greenup is the first day of each year where normalized GSI>0.5
+for i=1:39
+greenup(i)=find(gsix(:,i)>.5,1,'first');
+end
+
+
 % if you don't have 1300 temp and rh, I just cut a couple degrees of the
 % max temp, and humidity
 temp=tmax-2;rh=rmin+2;
 yr=repmat([1979:2017],[1 365])';
-[fm1,fm10,fm100,fm1000,erc,bi,sc,ic,ros]=NFDRS_run(temp,tmax,tmin,rh,rmax,rmin,pptdur,sow,vs,lat,dayofyear,yr,fuelmod,slopecl,igrass,climcl);
+[fm1,fm10,fm100,fm1000,erc,bi,sc,ic,ros]=NFDRS_run(temp,tmax,tmin,rh,rmax,rmin,pptdur,sow,vs,greenup,lat,dayofyear,yr,fuelmod,slopecl,igrass,climcl);
 plot(reshape(erc,365,39),'k');hold on;plot(mean(reshape(erc,365,39),2),'r','linewidth',3);
