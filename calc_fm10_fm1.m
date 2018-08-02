@@ -27,7 +27,7 @@ function [fm10,fm1]=calc_fm10(temp,rh,sow);
 
    tfct = [25,19,12,5];
    hfct = [0.75,0.83,0.92,1.00];
-
+sw1=sow;
 f3=find(sow>=3);
 sw1(f3)=3;
 
