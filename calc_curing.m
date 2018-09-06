@@ -1,4 +1,4 @@
-function [fmwood,fherbc,x1000,colddays,hveg,greendays] =calc_curing(climcl,j_date,j_green,fm1,ym1000,colddays,hveg,fm1000,maxt,mint,yx1000,igrass,yfherb,greendays,yfwood);
+function [fmwood,fherbc,x1000,hveg,greendays] =calc_curing(climcl,j_date,j_green,fm1,ym1000,hveg,fm1000,maxt,mint,yx1000,igrass,yfherb,greendays,yfwood);
 
 %   # DECLARE CONSTANTS
 %       # BOTH ANNUAL AND PERENNIALS WHEN GREEN (FHERBC ABOVE 120%)
@@ -92,8 +92,7 @@ switch hveg
         else
             fherbc = fm1;
         end
-    case 6,  % frozen
-        colddays = 0;
+    case 6,  
         x1000 = fm1000;
         fherbc = fm1;
 end
