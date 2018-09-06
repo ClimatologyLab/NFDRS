@@ -69,7 +69,7 @@ lyear=yr(ii);
 % CALCULATE CURING FROM CURING FUNCTION (78)
 [fmwood,fherbc,x1000,hveg,greendays]=calc_curing(climcl,j_date,j_green,fm1(ii),ym1000,hveg,fm1000(ii),tmax(ii),tmin(ii),yx1000,igrass,yfherb,greendays,yfwood);
 
-if hveg==5 & mint < 32
+if hveg==5 & tmin(ii) < 32
         colddays=colddays+1;
         if (colddays >= 3)
             hveg = 6;
@@ -80,7 +80,6 @@ end
 % CALCULATE INDICES AND STORE IN HASH PER STATION (ALL C VERSION)
 [erc(ii),bi(ii),sc(ii),ros(ii)]=calc_indices(w1d,w10d,w100d,w1000d,wherb,wwood,fherbc,depth,sig1d,sig10d,sg100d,s1000d,sgherb,sgwood,fm1(ii),fm10(ii),fm100(ii),fm1000(ii),fmwood,extmoi,hd,ws(ii),wndftr,slopecl,sow(ii),igrass);
 
-
 % CALCULATE IGNITION COMPONENT
 [ic(ii)]=calc_ic(temp(ii),fm1(ii),scm,sc(ii),sow(ii));
  woodm(ii)=fmwood;
@@ -89,7 +88,6 @@ end
  yx1000=x1000;
  yfherb=fherbc;
  yfwood=fmwood;
- vegs(ii)=hveg;
 end
 end
 end
